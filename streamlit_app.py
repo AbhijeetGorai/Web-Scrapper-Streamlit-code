@@ -3,6 +3,9 @@ import requests
 import json
 import pandas as pd
 from io import BytesIO
+import os
+from dotenv import load_dotenv
+
 
 # Configure page
 st.set_page_config(
@@ -13,6 +16,13 @@ st.set_page_config(
 
 # Replace this with your Render.com API URL
 API_URL = "https://web-scrapper-project-mk3w.onrender.com"
+
+# Get OpenAI API key from environment variable
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
+# Add API key validation
+if not OPENAI_API_KEY:
+    st.error("OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
 
 def main():
     st.title("Web Scraper Interface 🌐")
