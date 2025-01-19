@@ -4,17 +4,19 @@ import json
 
 # Function to call the API and get news articles
 def fetch_news():
-    url = 'YOUR_API_ENDPOINT'  # Replace with your actual API endpoint
+    url = 'https://web-scrapper-project-mk3w.onrender.com/scrape'  # Replace with your actual API endpoint, including the scheme
     headers = {
         'Content-Type': 'application/json'
     }
     body = {
         "topic": "Women Empowerment"
     }
-    response = requests.post(url, headers=headers, json=body)
-    if response.status_code == 200:
+    try:
+        response = requests.post(url, headers=headers, json=body)
+        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
         return response.json()
-    else:
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch news articles: {e}")
         return None
 
 # Function to extract and format the raw text from the JSON response
