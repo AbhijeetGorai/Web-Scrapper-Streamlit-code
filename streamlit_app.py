@@ -1,128 +1,46 @@
 import streamlit as st
 import requests
 import json
-import pandas as pd
-from io import BytesIO
-import os
-from dotenv import load_dotenv
 
+# Function to call the API and get news articles
+def fetch_news():
+    url = 'https://web-scrapper-project-mk3w.onrender.com/scrape'  # Replace with your actual API endpoint
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    body = {
+        "topic": "Women Empowerment"
+    }
+    response = requests.post(url, headers=headers, json=body)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
 
-# Configure page
-st.set_page_config(
-    page_title="Web Scraper Interface",
-    page_icon="🌐",
-    layout="wide"
-)
+# Function to format the news articles into a text file
+def format_news_to_text(news_data):
+    articles = news_data.get('articles', [])
+    formatted_text = ""
+    for article in articles:
+        formatted_text += f"Title: {article.get('title', 'No Title')}\n"
+        formatted_text += f"Description: {article.get('description', 'No Description')}\n"
+        formatted_text += f"URL: {article.get('url', 'No URL')}\n"
+        formatted_text += f"Published At: {article.get('publishedAt', 'No Date')}\n"
+        formatted_text += "\n"
+    return formatted_text
 
-# Replace this with your Render.com API URL
-API_URL = "https://web-scrapper-project-mk3w.onrender.com"
+# Streamlit app
+st.title("News on Women Empowerment")
 
-# Optional validation for the environment variable
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-if not OPENAI_API_KEY:
-    st.warning("OpenAI API key not found in environment variables. Some features might not work.")
-
-def main():
-    st.title("Web Scraper Interface 🌐")
-    st.write("Enter a topic and click the button to start scraping!")
-
-    # Input field for topic
-    topic = st.text_input("Enter Topic", "Women Empowerment")
-
-    # Create columns for buttons
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        if st.button("Start Scraping"):
-            with st.spinner('Scraping in progress...'):
-                try:
-                    response = requests.post(
-                        f"{API_URL}/scrape",
-                        json={"topic": topic},
-                        timeout=300  # 5 minutes timeout
-                    )
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        
-                        # Convert result to DataFrame
-                        df = pd.DataFrame(result['result'])
-                        
-                        # Create Excel file in memory
-                        output = BytesIO()
-                        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                            df.to_excel(writer, index=False)
-                        
-                        # Provide download button
-                        st.download_button(
-                            label="Download Results",
-                            data=output.getvalue(),
-                            file_name=f"{topic}_scraping_results.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        )
-                        
-                        # Display results in the app
-                        st.success("Scraping completed successfully!")
-                        st.dataframe(df)
-                    else:
-                        st.error(f"Error: {response.text}")
-                except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
-
-    with col2:
-        if st.button("Train Model"):
-            with st.spinner('Training in progress...'):
-                try:
-                    response = requests.post(
-                        f"{API_URL}/train",
-                        json={
-                            "topic": topic,
-                            "n_iterations": 5,
-                            "filename": "training_data.json"
-                        }
-                    )
-                    if response.status_code == 200:
-                        st.success("Training completed successfully!")
-                        st.json(response.json())
-                except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
-
-    with col3:
-        if st.button("Test Model"):
-            with st.spinner('Testing in progress...'):
-                try:
-                    response = requests.post(
-                        f"{API_URL}/test",
-                        json={
-                            "topic": topic,
-                            "n_iterations": 5,
-                            "openai_model_name": "gpt-3.5-turbo"
-                        }
-                    )
-                    if response.status_code == 200:
-                        st.success("Testing completed successfully!")
-                        st.json(response.json())
-                except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
-
-    # Add sidebar with additional information
-    st.sidebar.title("About")
-    st.sidebar.info(
-        "This web interface allows you to interact with the Web Scraper API. "
-        "Simply enter a topic and click the appropriate button to start the process."
-    )
-
-    # Add footer
-    st.markdown("---")
-    st.markdown(
-        """
-        <div style='text-align: center'>
-            <p>Created with ❤️ by Your Name</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-if __name__ == "__main__":
-    main() 
-    
+if st.button("Fetch News"):
+    news_data = fetch_news()
+    if news_data:
+        formatted_text = format_news_to_text(news_data)
+        st.download_button(
+            label="Download News Articles",
+            data=formatted_text,
+            file_name="women_empowerment_news.txt",
+            mime="text/plain"
+        )
+    else:
+        st.error("Failed to fetch news articles. Please try again later.")
