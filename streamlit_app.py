@@ -17,12 +17,10 @@ st.set_page_config(
 # Replace this with your Render.com API URL
 API_URL = "https://web-scrapper-project-mk3w.onrender.com"
 
-# Get OpenAI API key from environment variable
+# Optional validation for the environment variable
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-
-# Add API key validation
 if not OPENAI_API_KEY:
-    st.error("OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
+    st.warning("OpenAI API key not found in environment variables. Some features might not work.")
 
 def main():
     st.title("Web Scraper Interface 🌐")
